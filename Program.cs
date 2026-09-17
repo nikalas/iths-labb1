@@ -8,22 +8,20 @@ class Labb1
 	{
 		string input = DEFAULT_INPUT;
 
-		// check if string is passed as an argument or prompt the user for input
-		if (args.Length > 0 && !string.IsNullOrEmpty(args[0]))
-		{
-			input = args[0];
-		}
-		else
-		{
-			string userInput = RequestUserInput();
-			input = string.IsNullOrEmpty(userInput) ? DEFAULT_INPUT : userInput;
-		}
 
-		PrintPreamble(input);
-
-		long sum = NaiveNumberSequenceFinder.Find(input);
+		var numberSequenceFinder = new NumberSequenceFinderClass(input);
+		string current = numberSequenceFinder.Next();
+		while (!string.IsNullOrEmpty(current))
+		{
+			// Console.WriteLine($"current index {numberSequenceFinder.CurrentIndex}, current number sequence: {current}");
+			int startIndex = numberSequenceFinder.CurrentIndex -1;
+			int endIndex = startIndex + current.Length - 1;
+			NaiveNumberSequenceFinder.PrintHighlightedMatch(input, startIndex, endIndex);
+			// Console.WriteLine(current);
+			current = numberSequenceFinder.Next();
+		}
 		
-		PrintResults(sum);
+		PrintResults(numberSequenceFinder.Sum);
 	}
 
 	public static string RequestUserInput()
@@ -75,7 +73,6 @@ class NaiveNumberSequenceFinder
 
 			// Iterate through the following characters to find a a matching end digit
 			char startDigit = input[i];
-			string numberSequence;
 			for (int j = i + 1; j < input.Length; j++)
 			{
 				// non-digit characters are not allowed inside a valid number sequence
@@ -87,7 +84,7 @@ class NaiveNumberSequenceFinder
 				// if we find a matching end digit, extract the number sequence and add it to the sum
 				if (input[j] == startDigit)
 				{
-					numberSequence = input.Substring(i, j - i + 1);
+					string numberSequence = input.Substring(i, j - i + 1);
 					sum += long.Parse(numberSequence);
 
 					PrintHighlightedMatch(input, i, j);
@@ -114,4 +111,55 @@ class NaiveNumberSequenceFinder
 		Console.ResetColor();
 		Console.WriteLine(input.AsSpan(endIndex + 1));
 	}
+}
+
+class NumberSequenceFinderClass
+{
+	private readonly string _input;
+	public int CurrentIndex { get; private set; } = 0;
+
+	public long Sum { get; private set; } = 0;
+
+	public NumberSequenceFinderClass(string input)
+	{
+		if (string.IsNullOrEmpty(input))
+		{
+			throw new ArgumentException("Input string cannot be null or empty.", nameof(input));
+		}
+
+		_input = input;
+	}
+
+	public string Next()
+	{
+		while (CurrentIndex < _input.Length)
+		{
+			char startDigit = _input[CurrentIndex];
+			for (int j = CurrentIndex + 1; j < _input.Length; j++)
+			{
+				if (!char.IsDigit(_input[j]))
+				{
+					break;
+				}
+
+				if (_input[j] == startDigit)
+				{
+					string numberSequence = _input.Substring(CurrentIndex, j - CurrentIndex + 1);
+					Sum += long.Parse(numberSequence);
+					CurrentIndex++;
+							
+					return numberSequence;
+				}
+			}
+			CurrentIndex++;
+		}
+		return string.Empty;
+	}
+
+	public void Reset()
+	{
+		CurrentIndex = 0;
+		Sum = 0;
+	}
+
 }
