@@ -52,14 +52,18 @@ class Labb1
 
 }
 
+/// <summary>
+/// A class that finds valid number sequences in a string using a naive approach.
+/// </summary>
 class NaiveNumberSequenceFinder
 {
 
-	/**
-	 * Finds and prints all valid number sequences in the input string that start and end with the same digit.
-	 * @param input The input string to search through.
-	 * @return The sum of all valid number sequences found in the input string.
-	 */
+	/// <summary>
+	/// Finds and prints all valid number sequences in the input string that start and end with the same digit.
+	/// A valid number sequence is defined as a sequence of digits that starts and ends with the same digit, with no non-digit characters in between.
+	/// </summary>
+	/// <param name="input">The input string to search through.</param>
+	/// <returns>The sum of all valid number sequences found in the input string.</returns>
 	public static long Find(string input)
 	{
 
@@ -86,17 +90,28 @@ class NaiveNumberSequenceFinder
 					numberSequence = input.Substring(i, j - i + 1);
 					sum += long.Parse(numberSequence);
 
-					// write whole string but highlight current match
-					Console.Write(input.AsSpan(0, i));
-					Console.ForegroundColor = ConsoleColor.Red;
-					Console.Write(numberSequence);
-					Console.ResetColor();
-					Console.WriteLine(input.AsSpan(j+1));
+					PrintHighlightedMatch(input, i, j);
 
 					break;
 				}
 			}
 		}
 		return sum;
+	}
+
+	/// <summary>
+	/// Prints the input string with the matched number sequence highlighted.
+	/// </summary>
+	/// <param name="input">The input string to print.</param>
+	/// <param name="startIndex">The starting index of the matched number sequence.</param>
+	/// <param name="endIndex">The ending index of the matched number sequence.</param>
+	/// <param name="matchColor">The color used for highlighting the matched number sequence (default is red).</param>
+	public static void PrintHighlightedMatch(string input, int startIndex, int endIndex, ConsoleColor matchColor = ConsoleColor.Red)
+	{
+		Console.Write(input.AsSpan(0, startIndex));
+		Console.ForegroundColor = matchColor;
+		Console.Write(input.AsSpan(startIndex, endIndex - startIndex + 1));
+		Console.ResetColor();
+		Console.WriteLine(input.AsSpan(endIndex + 1));
 	}
 }
