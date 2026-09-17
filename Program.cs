@@ -1,5 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-
+﻿
 class Labb1
 {
 	const string DEFAULT_INPUT = "29535123p48723487597645723645";
@@ -8,45 +7,86 @@ class Labb1
 	{
 		string input = DEFAULT_INPUT;
 
+		if (Array.Exists(args, arg => arg == "--help" || arg == "-h"))
+		{
+			Console.WriteLine("Usage: dotnet run [-u]");
+			Console.WriteLine("-u: Unattended. Use hardcoded input string.");
+			return;
+		}
+
+		if (!Array.Exists(args, arg => arg == "-u"))
+		{
+			string userInput = ConsoleHelpers.RequestUserInput();
+			input = string.IsNullOrEmpty(userInput) ? DEFAULT_INPUT : userInput;
+		}
+
+
+		ConsoleHelpers.PrintPreamble(input);
+
+		ConsoleHelpers.PrintResults(
+			ExecuteNaiveFinder(input)
+		);
+		ConsoleHelpers.PrintResults(
+			ExecuteClassFinder(input)
+		);
+		ConsoleHelpers.PrintResults(
+			ExecuteIteratorFinder(input)
+		);
+
+		Console.WriteLine("Press any key to exit...");
+		Console.ReadKey();
+
+	}
+
+	public static long ExecuteNaiveFinder(string input)
+	{
+		Console.WriteLine();
+		Console.WriteLine("Using naive implementation");
+
+		return NaiveNumberSequenceFinder.Find(input);
+	}
+
+	public static long ExecuteClassFinder(string input)
+	{
+		Console.WriteLine();
+		Console.WriteLine("Using class implementation");
 
 		var numberSequenceFinder = new NumberSequenceFinderClass(input);
 		string current = numberSequenceFinder.Next();
 		while (!string.IsNullOrEmpty(current))
 		{
-			// Console.WriteLine($"current index {numberSequenceFinder.CurrentIndex}, current number sequence: {current}");
-			int startIndex = numberSequenceFinder.CurrentIndex -1;
+			int startIndex = numberSequenceFinder.CurrentIndex - 1;
 			int endIndex = startIndex + current.Length - 1;
-			NaiveNumberSequenceFinder.PrintHighlightedMatch(input, startIndex, endIndex);
-			// Console.WriteLine(current);
+			ConsoleHelpers.PrintHighlightedMatch(
+				input,
+				startIndex,
+				endIndex,
+				ConsoleColor.Blue
+			);
 			current = numberSequenceFinder.Next();
 		}
-		
-		PrintResults(numberSequenceFinder.Sum);
+		return numberSequenceFinder.Sum;
 	}
 
-	public static string RequestUserInput()
-	{
-		Console.WriteLine("Enter a string to search through or [Enter] to use the default string:");
-		string userInput = Console.ReadLine() ?? string.Empty;
-		Console.WriteLine($"You entered: {userInput}");
-		return userInput;
-	}
-
-	public static void PrintPreamble(string input)
-	{
-		Console.WriteLine("Input used: ");
-		Console.WriteLine(input);
-		Console.WriteLine("==========");
-		Console.WriteLine();
-
-	}
-
-	public static void PrintResults(long sum)
+	public static long ExecuteIteratorFinder(string input)
 	{
 		Console.WriteLine();
-		Console.WriteLine("==========");
-		Console.WriteLine($"Sum of all valid number sequences: {sum}");
+		Console.WriteLine("Using iterator implementation");
+
+		long sum = 0;
+		foreach (var (NumberSequence, StartIndex, EndIndex) in NumberSequenceFinderIterator.Find(input))
+		{
+			ConsoleHelpers.PrintHighlightedMatch(
+				input,
+				StartIndex,
+				EndIndex,
+				ConsoleColor.Green
+			);
+			sum += long.Parse(NumberSequence);
+		}
+		return sum;
 	}
+
 
 }
 
@@ -87,7 +127,7 @@ class NaiveNumberSequenceFinder
 					string numberSequence = input.Substring(i, j - i + 1);
 					sum += long.Parse(numberSequence);
 
-					PrintHighlightedMatch(input, i, j);
+					ConsoleHelpers.PrintHighlightedMatch(input, i, j);
 
 					break;
 				}
@@ -96,6 +136,10 @@ class NaiveNumberSequenceFinder
 		return sum;
 	}
 
+}
+
+class ConsoleHelpers
+{
 	/// <summary>
 	/// Prints the input string with the matched number sequence highlighted.
 	/// </summary>
@@ -110,6 +154,31 @@ class NaiveNumberSequenceFinder
 		Console.Write(input.AsSpan(startIndex, endIndex - startIndex + 1));
 		Console.ResetColor();
 		Console.WriteLine(input.AsSpan(endIndex + 1));
+	}
+
+	public static string RequestUserInput()
+	{
+		Console.WriteLine("Enter a string to search through or [Enter] to use the default string:");
+		string userInput = Console.ReadLine() ?? string.Empty;
+		Console.WriteLine($"You entered: {userInput}");
+		return userInput;
+	}
+
+	public static void PrintPreamble(string input)
+	{
+		Console.WriteLine("Input used: ");
+		Console.WriteLine(input);
+		Console.WriteLine("==========");
+		Console.WriteLine();
+
+	}
+
+	public static void PrintResults(long sum)
+	{
+		Console.WriteLine();
+		Console.WriteLine($"Sum of all valid number sequences: {sum}");
+		Console.WriteLine("==========");
+		Console.WriteLine();
 	}
 }
 
@@ -147,7 +216,7 @@ class NumberSequenceFinderClass
 					string numberSequence = _input.Substring(CurrentIndex, j - CurrentIndex + 1);
 					Sum += long.Parse(numberSequence);
 					CurrentIndex++;
-							
+
 					return numberSequence;
 				}
 			}
